@@ -1,12 +1,13 @@
 /* eslint-disable import/no-anonymous-default-export */
 import axios from "axios";
+import { BASE_URL } from "../utility/Constants";
 
-const LOGIN_BASE_URL = "http://localhost:8080/talk2doc/login";
+const LOGIN_URL = "/login";
 
 class LoginService {
   
     validateLogin(userLogin) {
-        return axios.post(LOGIN_BASE_URL, userLogin)
+        return axios.post(BASE_URL + LOGIN_URL, userLogin)
     }
 }
 
