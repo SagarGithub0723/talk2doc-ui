@@ -1,83 +1,87 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+/* eslint-disable no-unused-vars */
+/* eslint-disable jsx-a11y/anchor-is-valid */
+import React, { useContext, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom';
 import LoginService from '../services/LoginService';
+import Util from '../utility/Util';
+import { FormProvider, useForm } from 'react-hook-form';
+import { Input } from './input';
+import { UserContext } from '../App';
+import { 
+  mobile_no_validation,
+  password_validation
+} from '../utility/Validations';
+export var userName = "";
+export var mobileNo = "";
 
 const Login = () => {
+  const {state, dispatch} = useContext(UserContext)
   const navigate = useNavigate();
-  const [userLogin, setuserLogin] = useState({
-    id: "",
-    userName: "",
-    mobileNo: "",
-    pw_pin: "",
-    department: ""
-  });
+  const methods = useForm();
+  const [successMsg, setsuccessMsg] = useState("");
 
-  const handleChange = (login) =>{
-    const value = login.target.value;
-    setuserLogin({...userLogin, [login.target.name]: value});
+  const handleChange = (message) =>{
+      setsuccessMsg(message);
   };
 
-  const validateLogin = (login) =>{
-    login.preventDefault();
+  const validateLogin = methods.handleSubmit(login =>{
     console.log(login);   
-      LoginService.validateLogin(userLogin).then((response) => {
-      console.log(response.data);   
-      navigate("/doctor")
+    LoginService.validateLogin(login).then((response) => {
+      dispatch({type: "USER", payload: response.data.department})
+      const userNav = Util.getUserDetailsNavigation(response.data.department);
+      console.log(userNav);
+      userName = response.data.userName;
+      mobileNo = response.data.mobileNo;
+      navigate(userNav);
     }).catch((error) => {
       console.log(error);
+      window.alert("Invalid Credential, Please enter correct Mobile/Pin !!!");
     })
-  }
+    methods.reset();
+    handleChange("Registered Successfully!!!!");
+    console.log("successMsg : " + successMsg);
+});
+
   return (
-    
+    <FormProvider {...methods}>
+    <form
+      docDetails = {e => e.preventDefault()}
+      noValidate
+      autoComplete="off"
+      className="bg-sky-100">
+
     <div className='flex justify-center items-center bg-sky-100'>
       <div className='px-20 py-8 '>
-            <div className='font-bold text-2xl tracking-wider'>
-                <h>User Login</h>
-            </div>
+        <h2 className='font-bold text-2xl tracking-wider'>
+            Login to your account
+        </h2>
+        <p className="text-center text-sm text-gray-600">
+            Don't have account yet? {' '}
+            <Link to="/registration" className="font-sans text-sm text-blue-500 hover:text-blue-800">
+                Sign up
+            </Link>
+        </p>
         <div className='items-center justify-center h-14 w-full my-4'>
-          <label className='block text-gray-600 text-sm font-normal text-left'>Mobile</label>
-          <input 
-              type='text'
-              name='mobileNo'
-              value={userLogin.mobileNo}
-              onChange={(login) => handleChange(login)}
-              className='h-10 w-96 border mt-1 px-2 py-2'>                    
-          </input>
+          <Input {...mobile_no_validation} />
         </div>
         <div className='items-center justify-center h-14 w-full my-5'>
-          <label className='block text-gray-600 text-sm font-normal text-left'>Pw Pin</label>
-          <input 
-              type='password'
-              name='pw_pin'
-              value={userLogin.pw_pin}
-              onChange={(e) => handleChange(e)}
-              className='h-10 w-96 border mt-1 px-2 py-2'>                    
-          </input>
-        </div> 
-        <div className='items-center justify-center h-14 w-full my-4'>
-          <label className='block text-gray-600 text-sm font-normal text-left'>Login as</label>
-          <input 
-              type='text'
-              name='department'
-              value={userLogin.department}
-              onChange={(login) => handleChange(login)}
-              className='h-10 w-96 border mt-1 px-2 py-2'>                    
-          </input>
+          <Input {...password_validation} />
         </div>
         <div className='items-center justify-center h-14 w-full my-4 space-x-4 pt-4'>
             <button 
                 onClick={validateLogin}
-                className='rounded text-white font-semibold bg-green-400 hover:bg-green-700 px-2 py-0.5'>
+                className='block rounded text-white font-semibold bg-green-400 hover:bg-green-700 h-10 w-96 border mt-1 px-2 py-2'>
                 Login
             </button>
-            <button 
-                onClick={() => navigate("/registration")}
-                className='rounded text-white font-semibold bg-blue-400 hover:bg-blue-700 px-2 py-0.5'>
-                Sign Up
-            </button>
+                        
         </div>
+        <Link className="font-sans text-sm text-blue-500 hover:text-blue-800" href="#">
+          Forgot your password?
+      </Link>
       </div>  
-    </div>  
+    </div>
+    </form>
+    </FormProvider>
   )
 };
 
